@@ -1,54 +1,168 @@
-import type { RouteObject } from 'react-router'
-import { describe, test, expect, vi } from 'vitest'
+import { RouteObject } from 'react-router'
+import { describe, test, expect } from 'vitest'
 
-let userEditRoute: RouteObject = {
-  path: "edit",
-};
-let userProfileRoute: RouteObject = {
-  path: ":id",
+import { filterRoutes } from '../src/index'
+
+const userEditRoute: RouteObject = {
+  path: 'edit',
+}
+const userProfileRoute: RouteObject = {
+  path: ':id',
   children: [userEditRoute],
-};
-let usersRoute: RouteObject = {
-  path: "/users",
+}
+const usersRoute: RouteObject = {
+  path: '/users',
   children: [{ index: true }, userProfileRoute],
-};
-let indexWithPathRoute: RouteObject = {
-  path: "/withpath",
+}
+const indexWithPathRoute: RouteObject = {
+  path: '/withpath',
   index: true,
-};
-let layoutRouteIndex: RouteObject = {
-  path: "/layout",
+}
+const layoutRouteIndex: RouteObject = {
+  path: '/layout',
   index: true,
-};
-let layoutRoute: RouteObject = {
-  path: "/layout",
-  children: [
-    { path: "item", },
-    { path: ":id", },
-    { path: "*", },
-  ],
-};
+}
+const layoutRoute: RouteObject = {
+  path: '/layout',
+  children: [{ path: 'item' }, { path: ':id' }, { path: '*' }],
+}
 
-let routes = [
-  { path: "/", element },
+const routes = [
+  { path: '/' },
   {
-    path: "/home",
-    children: [
-      { index: true, },
-      { path: "*" },
-    ],
+    path: '/home',
+    children: [{ index: true }, { path: '*' }],
   },
   indexWithPathRoute,
   layoutRoute,
   layoutRouteIndex,
   usersRoute,
-  { path: "*" },
-];
+  { path: '*' },
+]
 
-describe('index', () => {
-  test('demo part', () => {
-    console.log = vi.fn()
-    welcome()
-    expect(console.log).toHaveBeenCalledWith('hello world')
+describe('filter routes', () => {
+  test('path /', () => {
+    const result = filterRoutes(routes, '/')
+    expect(result).toMatchObject([
+      { path: '/', absolutePath: '/' },
+      { path: '*', absolutePath: '/*' },
+    ])
+  })
+
+  test('path /not-found', () => {
+    const result = filterRoutes(routes, '/not-found')
+    expect(result).toMatchObject([{ path: '*', absolutePath: '/*' }])
+  })
+
+  test('path /home', () => {
+    const result = filterRoutes(routes, '/home')
+    expect(result).toMatchObject([
+      {
+        path: '/home',
+        absolutePath: '/home',
+        children: [
+          { index: true, absolutePath: '/home/' },
+          { path: '*', absolutePath: '/home/*' },
+        ],
+      },
+      { path: '*', absolutePath: '/*' },
+    ])
+  })
+
+  test('path /layout', () => {
+    const result = filterRoutes(routes, '/layout')
+    expect(result).toMatchObject([
+      {
+        path: '/layout',
+        children: [{ path: '*', absolutePath: '/layout/*' }],
+        absolutePath: '/layout',
+      },
+      { path: '/layout', index: true, absolutePath: '/layout' },
+      { path: '*', absolutePath: '/*' },
+    ])
+  })
+
+  test('path /layout/item', () => {
+    const result = filterRoutes(routes, '/layout/item')
+    expect(result).toMatchObject([
+      {
+        path: '/layout',
+        children: [
+          { path: 'item', absolutePath: '/layout/item' },
+          { path: ':id', absolutePath: '/layout/:id' },
+          { path: '*', absolutePath: '/layout/*' },
+        ],
+        absolutePath: '/layout',
+      },
+      { path: '*', absolutePath: '/*' },
+    ])
+  })
+
+  test('path /layout/1', () => {
+    const result = filterRoutes(routes, '/layout/1')
+    expect(result).toMatchObject([
+      {
+        path: '/layout',
+        children: [
+          { path: ':id', absolutePath: '/layout/:id' },
+          { path: '*', absolutePath: '/layout/*' },
+        ],
+        absolutePath: '/layout',
+      },
+      { path: '*', absolutePath: '/*' },
+    ])
+  })
+
+  test('path /users', () => {
+    const result = filterRoutes(routes, '/users')
+    expect(result).toMatchObject([
+      {
+        path: '/users',
+        children: [{ index: true, absolutePath: '/users/' }],
+        absolutePath: '/users',
+      },
+      { path: '*', absolutePath: '/*' },
+    ])
+  })
+
+  test('path /users/1', () => {
+    const result = filterRoutes(routes, '/users/1')
+    expect(result).toMatchObject([
+      {
+        path: '/users',
+        children: [
+          {
+            path: ':id',
+            absolutePath: '/users/:id',
+            children: [],
+          },
+        ],
+        absolutePath: '/users',
+      },
+      { path: '*', absolutePath: '/*' },
+    ])
+  })
+
+  test('path /users/1/edit', () => {
+    const result = filterRoutes(routes, '/users/1/edit')
+    expect(result).toMatchObject([
+      {
+        path: '/users',
+        children: [
+          {
+            path: ':id',
+            absolutePath: '/users/:id',
+            children: [
+              {
+                absolutePath: '/users/:id/edit',
+                path: 'edit',
+              },
+            ],
+          },
+        ],
+        absolutePath: '/users',
+      },
+      { path: '*', absolutePath: '/*' },
+    ])
   })
 })

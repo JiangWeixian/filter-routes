@@ -19,7 +19,7 @@ export const filterRoutes = (routes: RouteObject[], pathname: string, parentPath
     const next: ExtendRouteObject = Object.assign({}, route) as ExtendRouteObject
     const absolutePath = joinPaths([parentPath || '/', next.path || ''])
     let matched = false
-    if (next.path) {
+    if (next.path || next.index) {
       next.absolutePath = absolutePath
       matched = !!matchPath(
         {
@@ -33,7 +33,7 @@ export const filterRoutes = (routes: RouteObject[], pathname: string, parentPath
     if (route.children) {
       next.children = filterRoutes(route.children, pathname, absolutePath)
     }
-    if (matched || next.children) {
+    if (matched || (next.children && next.children?.length > 0)) {
       matchedRoutes.push(next)
     }
   })
