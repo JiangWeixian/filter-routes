@@ -1,5 +1,11 @@
 # filter-routes
 
+## 0.1.0
+
+### Minor Changes
+
+- 13c810f: support pathnames filter
+
 ## 0.0.2
 
 ### Patch Changes
