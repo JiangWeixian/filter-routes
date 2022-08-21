@@ -1,5 +1,5 @@
 import { RouteObject } from 'react-router'
-import { describe, test, expect } from 'vitest'
+import { describe, test, expect, it } from 'vitest'
 
 import { filterRoutes } from '../src/index'
 
@@ -161,6 +161,24 @@ describe('filter routes', () => {
           },
         ],
         absolutePath: '/users',
+      },
+      { path: '*', absolutePath: '/*' },
+    ])
+  })
+})
+
+describe('filter routes with mutiple pathnames', () => {
+  it('mutiple pathnames', () => {
+    const result = filterRoutes(routes, ['/home', '/'])
+    expect(result).toMatchObject([
+      { path: '/', absolutePath: '/' },
+      {
+        path: '/home',
+        absolutePath: '/home',
+        children: [
+          { index: true, absolutePath: '/home/' },
+          { path: '*', absolutePath: '/home/*' },
+        ],
       },
       { path: '*', absolutePath: '/*' },
     ])

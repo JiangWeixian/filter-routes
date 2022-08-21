@@ -13,7 +13,16 @@ const joinPaths = (paths: string[]): string => {
   return pathname
 }
 
-export const filterRoutes = (routes: RouteObject[], pathname: string, parentPath = '') => {
+const isMatchPath = (meta: Parameters<typeof matchPath>[0], pathnames: string | string[]) => {
+  const _pathnames = Array.isArray(pathnames) ? pathnames : [pathnames]
+  return _pathnames.some((pathname) => matchPath(meta, pathname))
+}
+
+export const filterRoutes = (
+  routes: RouteObject[],
+  pathname: string | string[],
+  parentPath = '',
+) => {
   const matchedRoutes: RouteObject[] = []
   routes.forEach((route) => {
     const next: ExtendRouteObject = Object.assign({}, route) as ExtendRouteObject
@@ -21,7 +30,7 @@ export const filterRoutes = (routes: RouteObject[], pathname: string, parentPath
     let matched = false
     if (next.path || next.index) {
       next.absolutePath = absolutePath
-      matched = !!matchPath(
+      matched = !!isMatchPath(
         {
           path: next.absolutePath,
           caseSensitive: next.caseSensitive,
